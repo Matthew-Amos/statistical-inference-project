@@ -1,0 +1,115 @@
+---
+title: "Statistical Inference Course Project: Exploratory Analysis of ToothGrowth"
+author: equinaut
+date: October 23, 2015
+output: html_document
+---
+
+## Overview
+
+This report is to begin exploratory data analyses of the ToothGrowth data set.
+
+
+## Environment Set Up
+```{r}
+# Libraries
+library(ggplot2)
+library(psych)
+
+# Data Set
+data("ToothGrowth")
+```
+
+## Data Structure
+
+Using R's `head` and `class` functions, below is an output of the data structure after converting dose to a factor.
+
+#### Classes
+
+```{r, echo=FALSE}
+# dose to factor
+ToothGrowth$dose <- as.factor(ToothGrowth$dose)
+
+# Classes
+d.classes <- c()
+for(i in 1:3) d.classes <- c(d.classes, class(ToothGrowth[,i]))
+d.classes <- rbind(c("len", "supp", "dose"), d.classes)
+row.names(d.classes) = NULL
+d.classes
+```
+
+#### Head
+
+```{r, echo=FALSE}
+# Head
+head(ToothGrowth)
+```
+
+```{r, echo=TRUE}
+length(ToothGrowth); nrow(ToothGrowth)
+```
+
+## Data Summary
+
+```{r, echo=TRUE}
+describe(ToothGrowth)
+```
+
+`len` ranges from 4.20 to 33.90 with a mean of 18.81. `dose` ranges from 0.500 to 2.000 with a mean of 1.167. The boxplot below visually summarizes the above output.
+
+```{r, echo=TRUE}
+ggplot(aes(x = supp, y = len), data = ToothGrowth) + 
+    geom_boxplot(aes(fill=dose)) +
+    labs(title = "Len given Dose and Supp")
+```
+
+## Confidence Intervals, Hypothesis Tests
+
+#### Supp
+
+```{r, echo = TRUE}
+t.test(len ~ supp, data = ToothGrowth)
+```
+
+At an alpha of .05 the p-value is not signifcant. Additionally, the confidence interval contains 0. These both indicate that the mean `len` difference between OJ and VC is not significantly different than zero.
+
+#### Dose
+
+To compare the doses in a similar manner as to that above, we must subset the data for each unique dose combination. This is so that we can compare the means and variances between doses.
+
+The total number of combinations is 3:
+
+- .5 vs 1
+
+- .5 vs 2
+
+- 1 vs 2
+
+```{r, echo=TRUE}
+# Subset
+set.0.5.VS.1.0 <- subset(ToothGrowth, ToothGrowth$dose %in% c(.5, 1))
+set.0.5.VS.2.0 <- subset(ToothGrowth, ToothGrowth$dose %in% c(.5, 2))
+set.1.0.VS.2.0 <- subset(ToothGrowth, ToothGrowth$dose %in% c(1, 2))
+
+# 0.5 vs 1.0
+t.test(len ~ dose, data = set.0.5.VS.1.0)
+
+# 0.5 vs 2.0
+t.test(len ~ dose, data = set.0.5.VS.2.0)
+
+# 1.0 vs 2.0
+t.test(len ~ dose, data = set.1.0.VS.2.0)
+```
+
+For each combination we observe a signficant p-value indicating that all of the differences between the means are significantly different than 0.
+
+## Conclusions
+
+We conclude that:
+
+- Although the field `supp` may be useful in other analyses, these do not appear to have a direct effect on the field `len`
+
+- The dosages appear to mean lengths that are statistically different from one another. This therefore would be an opportune area to focus the study on.
+
+
+This is based off the assumptions that this data is randomly collected and representative of the population, and that the variances between the dose subsets are independent and unequal.
